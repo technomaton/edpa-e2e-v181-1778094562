@@ -1,14 +1,18 @@
-id: S-1
-type: Story
-title: "v181 story"
-parent: F-1
-js: 3
-status: Backlog
-iteration: PI-2026-1.1
 contributors:
-  - person: bob-dev
-    as: owner
-    cw: 0.8
-  - person: carol-qa
-    as: reviewer
-    cw: 0.2
+- as: owner
+  cw: 0.8
+  person: bob-dev
+- as: reviewer
+  cw: 0.2
+  person: carol-qa
+- as: key
+  cw: 0.6
+  person: dave-pm
+  source: pr_author:#5
+id: S-1
+iteration: PI-2026-1.1
+js: 3
+parent: F-1
+status: Backlog
+title: v181 story
+type: Story
