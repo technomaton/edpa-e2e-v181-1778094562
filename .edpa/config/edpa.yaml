@@ -1,8 +1,80 @@
-project: { name: "EDPA E2E v1.8.1-beta" }
-governance: { methodology: "EDPA 1.8.1-beta", calculation_mode: gates, audit_mode: full }
+project:
+  name: EDPA E2E v1.8.1-beta
+governance:
+  methodology: EDPA 1.8.1-beta
+  calculation_mode: gates
+  audit_mode: full
 naming:
-  pi_pattern: "PI-{year}-{pi_num}"
-  iteration_pattern: "PI-{year}-{pi_num}.{iter_num}"
-  branch_pattern: "{type}/{item_id}-{description}"
-  item_prefixes: { initiative: I, epic: E, feature: F, story: S, task: T, defect: D }
-sync: { github_org: technomaton, github_repo: edpa-e2e-v181-1778094562 }
+  pi_pattern: PI-{year}-{pi_num}
+  iteration_pattern: PI-{year}-{pi_num}.{iter_num}
+  branch_pattern: '{type}/{item_id}-{description}'
+  item_prefixes:
+    initiative: I
+    epic: E
+    feature: F
+    story: S
+    task: T
+    defect: D
+sync:
+  github_org: technomaton
+  github_repo: edpa-e2e-v181-1778094562
+  github_project_number: 42
+  github_project_id: PVT_kwDOAP4s484BW6ad
+  field_ids:
+    Title: PVTF_lADOAP4s484BW6adzhSK_ME
+    Assignees: PVTF_lADOAP4s484BW6adzhSK_MI
+    Status: PVTSSF_lADOAP4s484BW6adzhSK_MM
+    Labels: PVTF_lADOAP4s484BW6adzhSK_MQ
+    Linked pull requests: PVTF_lADOAP4s484BW6adzhSK_MU
+    Milestone: PVTF_lADOAP4s484BW6adzhSK_MY
+    Repository: PVTF_lADOAP4s484BW6adzhSK_Mc
+    Reviewers: PVTF_lADOAP4s484BW6adzhSK_Mk
+    Parent issue: PVTF_lADOAP4s484BW6adzhSK_Mo
+    Sub-issues progress: PVTF_lADOAP4s484BW6adzhSK_Ms
+    Job Size: PVTF_lADOAP4s484BW6adzhSK_OM
+    Business Value: PVTF_lADOAP4s484BW6adzhSK_OQ
+    Time Criticality: PVTF_lADOAP4s484BW6adzhSK_Os
+    Risk Reduction: PVTF_lADOAP4s484BW6adzhSK_Ow
+    WSJF Score: PVTF_lADOAP4s484BW6adzhSK_O0
+    Team: PVTSSF_lADOAP4s484BW6adzhSK_Ps
+    Initiative Status: PVTSSF_lADOAP4s484BW6adzhSK_Pw
+    Epic Status: PVTSSF_lADOAP4s484BW6adzhSK_Qs
+    Feature Status: PVTSSF_lADOAP4s484BW6adzhSK_R4
+    Story Status: PVTSSF_lADOAP4s484BW6adzhSK_R8
+    Iteration: PVTSSF_lADOAP4s484BW6adzhSK_SA
+  option_ids:
+    Status:Todo: f75ad846
+    Status:In Progress: 47fc9ee4
+    Status:Done: '98236657'
+    Team:Core: cc1415b8
+    Team:Platform: 94d947df
+    Team:Management: 02dadce6
+    Initiative Status:Funnel: 54701e40
+    Initiative Status:Reviewing: ced0af15
+    Initiative Status:Analyzing: 7f4febe8
+    Initiative Status:Ready: 0ccef13e
+    Initiative Status:Implementing: cfdcdeaa
+    Initiative Status:Done: d5a06f86
+    Epic Status:Funnel: f2fd40b5
+    Epic Status:Reviewing: c4c679f6
+    Epic Status:Analyzing: 96fb93f8
+    Epic Status:Ready: 0f69a213
+    Epic Status:Implementing: 80d7cad4
+    Epic Status:Done: 63fc804e
+    Feature Status:Funnel: 6b598e17
+    Feature Status:Analyzing: 8ef985c7
+    Feature Status:Backlog: 0cb250fc
+    Feature Status:Implementing: 7b45a68f
+    Feature Status:Validating: ea0b725e
+    Feature Status:Deploying: b42da3bb
+    Feature Status:Releasing: a44d2393
+    Feature Status:Done: f05d3ca5
+    Story Status:Funnel: 530bcfa2
+    Story Status:Analyzing: e7ee108f
+    Story Status:Backlog: b333eef3
+    Story Status:Implementing: b65a1ea4
+    Story Status:Validating: 95501fa0
+    Story Status:Deploying: 92d4eb3d
+    Story Status:Releasing: 3deda4ce
+    Story Status:Done: f86a230c
+    Iteration:PI-2026-1.1: 7a10f237

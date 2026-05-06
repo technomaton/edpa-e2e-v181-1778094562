@@ -1,0 +1,8 @@
+iteration:
+  id: PI-2026-1.3
+  pi: PI-2026-1
+  type: delivery
+  sequence: 3
+  start_date: 2026-05-25
+  end_date: 2026-05-31
+  status: future

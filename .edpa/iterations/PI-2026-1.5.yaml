@@ -1,0 +1,8 @@
+iteration:
+  id: PI-2026-1.5
+  pi: PI-2026-1
+  type: ip
+  sequence: 5
+  start_date: 2026-06-08
+  end_date: 2026-06-14
+  status: future

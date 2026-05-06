@@ -1,0 +1,8 @@
+iteration:
+  id: PI-2026-1.1
+  pi: PI-2026-1
+  type: delivery
+  sequence: 1
+  start_date: 2026-05-11
+  end_date: 2026-05-17
+  status: planning

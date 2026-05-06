@@ -1,0 +1,11 @@
+# PI-level metadata. Per-iteration files live alongside as
+# PI-2026-1.{1..N}.yaml; the assistant reconstructs the
+# timeline at runtime via _pi_loader.py.
+
+pi:
+  id: PI-2026-1
+  status: planning
+  iteration_weeks: 1
+  pi_iterations: 5
+  start_date: 2026-05-11
+  end_date: 2026-06-14
