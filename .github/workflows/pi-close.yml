@@ -1,0 +1,43 @@
+# EDPA PI Close
+# Manual trigger: aggregate iteration results into PI-level summary
+name: EDPA PI Close
+
+on:
+  workflow_dispatch:
+    inputs:
+      pi_id:
+        description: 'PI ID (e.g., PI-2026-1)'
+        required: true
+        type: string
+
+jobs:
+  close-pi:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install pyyaml
+
+      - name: Aggregate PI metrics
+        env:
+          PI_ID: ${{ inputs.pi_id }}
+        run: python3 .claude/edpa/scripts/pi_close.py --pi "$PI_ID"
+
+      - name: Commit PI report
+        run: |
+          git config user.name "EDPA Bot"
+          git config user.email "edpa@github-actions"
+          git add .edpa/reports/pi-${{ inputs.pi_id }}/
+          if git diff --cached --quiet; then
+            echo "No PI report changes"
+          else
+            git commit -m "feat(edpa): close PI ${{ inputs.pi_id }}"
+            git push
+          fi

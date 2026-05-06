@@ -1,0 +1,235 @@
+# EDPA Contribution Weight Heuristics v1.0.0
+#
+# Calibrated via Monte Carlo simulation (1000 scenarios, 66,362 records, p<0.001)
+# Validated: 8 team compositions (569 pairs) + 2-PI simulation (172 ground truth)
+#
+# Git measures activity, not value. These weights correct systematic biases
+# for strategic roles (BO, PM, Arch) that auto-detection undervalues.
+
+version: "1.0.0"
+
+# Minimum evidence score to be considered a contributor
+evidence_threshold: 1.0
+
+# ─────────────────────────────────────────────────────────────────────
+# CW MATRIX PER ROLE × EVIDENCE
+# ─────────────────────────────────────────────────────────────────────
+#
+# Each role has its own CW per evidence level.
+# Values = median from Monte Carlo (1000 scenarios, p<0.001).
+#
+#                  owner    key    reviewer  consulted
+#                  ─────    ───    ────────  ─────────
+#   BO               —      —       0.35      0.30     ← undervalued by auto-detection
+#   PM               —      —       0.25      0.20     ← undervalued by auto-detection
+#   Arch           1.00    0.60     0.30       —       ← reviewer undervalued
+#   Dev            1.00    0.60     0.25       —       ← precisely calibrated
+#   DevSecOps      1.00    0.60     0.25       —       ← precisely calibrated
+#   QA               —     0.60     0.25       —       ← precisely calibrated
+#
+
+# Default weights (fallback when role is unknown)
+role_weights:
+  owner: 1.00          # GitHub issue assignee
+  key: 0.60            # PR author, /contribute
+  reviewer: 0.25       # PR reviewer, commit author
+  consulted: 0.15      # issue/PR comment
+
+# Per-role overrides — applied by engine v2.0+
+# (In v1.x these were declared but ignored — fixed in v2.0)
+# compute_cw() reads person.role from people.yaml and applies the matching override.
+role_overrides:
+
+  # ═══ STRATEGIC ROLES (Git undervalues them) ═══
+
+  BO:                          # Business Owner
+    owner: 1.00                # n/a (BO is not assignee)
+    key: 0.60                  # n/a (BO does not create PRs)
+    reviewer: 0.35             # MC: median=0.35, n=296, bias=+0.10, 63% corrections
+    consulted: 0.30            # MC: median=0.30, n=1514, bias=+0.16, 75% corrections
+    #
+    # Why: BO decides priorities, validates business value,
+    # approves/stops epics. None of this shows in commits.
+    # Team confirms higher CW in retro in 75% of cases.
+
+  PM:                          # Product Manager / Product Owner
+    owner: 1.00                # n/a
+    key: 0.60                  # n/a
+    reviewer: 0.25             # MC: median=0.25, n=1157, bias=+0.04, 45% corrections
+    consulted: 0.20            # MC: median=0.20, n=6200, bias=+0.11, 60% corrections
+    #
+    # Why: PM defines requirements, acceptance criteria, stakeholder mgmt.
+    # Git only sees comments, not hours spent on specification.
+
+  Arch:                        # Architect
+    owner: 1.00                # MC: stable, n=n/a
+    key: 0.60                  # MC: median=0.60, n=1306, stable
+    reviewer: 0.30             # MC: median=0.30, n=2907, bias=+0.10, 53% corrections
+    consulted: 0.15            # fallback
+    #
+    # Why: Arch does design reviews, mentoring, architectural decisions
+    # across stories. Git only sees code review, not architectural contribution.
+
+  # ═══ EXECUTION ROLES (Git measures them accurately) ═══
+
+  Dev:                         # Developer
+    owner: 1.00                # MC: median=1.00, n=17855, only 5% corrections ✓
+    key: 0.60                  # MC: median=0.60, n=14340, 16% corrections ✓
+    reviewer: 0.25             # MC: median=0.25, n=6217, 24% corrections ✓
+    consulted: 0.15            # fallback
+    #
+    # Dev is the best-calibrated role. Git commits = work.
+
+  DevSecOps:                   # DevSecOps Engineer
+    owner: 1.00                # MC: median=1.00, n=2152, 10% corrections ✓
+    key: 0.60                  # MC: median=0.60, n=1234, 20% corrections ✓
+    reviewer: 0.30             # MC: 0.25 → kashealth calibration: 0.30 (62% corrections, MAD→0)
+    consulted: 0.15            # fallback
+    #
+    # DevSecOps infra work (CI/CD, security) is mostly visible in Git.
+    # Reviewer CW updated from 0.25→0.30 based on kashealth ground truth (22 records).
+
+  QA:                          # QA / Test Engineer
+    owner: 1.00                # MC: stable (25% corrections down, but median holds)
+    key: 0.60                  # MC: median=0.60, n=3017 (26% corrections down)
+    reviewer: 0.25             # MC: median=0.25, n=6892, stable ✓
+    consulted: 0.15            # fallback
+    #
+    # QA has many test commits, but those don't mean ownership.
+    # Median holds at auto-detected values → no change.
+
+# ─────────────────────────────────────────────────────────────────────
+# EVIDENCE SIGNALS AND THEIR WEIGHTS
+# ─────────────────────────────────────────────────────────────────────
+signals:
+  assignee: 4.0             # GitHub issue assignee → owner
+  contribute_command: 3.0    # /contribute @person weight:X → key
+  pr_author: 2.0            # PR author referencing item → key
+  commit_author: 1.0        # Commit with S-XXX/F-XXX/E-XXX → reviewer
+  pr_reviewer: 1.0          # PR review → reviewer
+  issue_comment: 0.5        # Comment on issue/PR → consulted
+
+# ─────────────────────────────────────────────────────────────────────
+# GATE WEIGHTS  (used only when engine runs with --mode gates)
+# ─────────────────────────────────────────────────────────────────────
+# Each status transition on Feature/Epic/Initiative is a deliverable.
+# Weights split the item's Job Size across its lifecycle, so prep work
+# (LBC, decomposition, validation) is credited as it happens — not only
+# at final Done. Weights MUST sum to 1.0 per item type.
+#
+# Modes:
+#   simple / full  → ignore this section, use status==Done filter
+#   gates          → emit one scoring event per transition in iteration
+#
+gate_weights:
+  Feature:                       # 7 transitions across 8 SAFe statuses
+    "Funnel→Analyzing":         0.10   # LBC delivered
+    "Analyzing→Backlog":        0.05   # Decomposed, AC defined
+    "Backlog→Implementing":     0.05   # Sprint planning, breakdown
+    "Implementing→Validating":  0.50   # Code merged (the bulk of work)
+    "Validating→Deploying":     0.15   # QA sign-off, acceptance
+    "Deploying→Releasing":      0.05   # Deployed to prod
+    "Releasing→Done":           0.10   # Release verified, hypothesis proven
+
+  Epic:                          # 5 transitions across 6 portfolio statuses
+    "Funnel→Reviewing":         0.05   # Triage
+    "Reviewing→Analyzing":      0.10   # Accepted for LBC
+    "Analyzing→Ready":          0.25   # LBC approved, MVP scope set
+    "Ready→Implementing":       0.10   # Capacity allocated, kickoff
+    "Implementing→Done":        0.50   # MVP delivered, hypothesis tested
+
+  Initiative:                    # Same shape as Epic (portfolio level)
+    "Funnel→Reviewing":         0.05
+    "Reviewing→Analyzing":      0.10
+    "Analyzing→Ready":          0.25
+    "Ready→Implementing":       0.10
+    "Implementing→Done":        0.50
+
+# Gate role affinity — which roles typically drive each gate.
+# Used as audit hint only; does NOT affect CW math (that stays in role_overrides).
+gate_role_affinity:
+  "Funnel→Analyzing":          [BO, PM, Arch]        # Lean Business Case
+  "Analyzing→Backlog":         [PM, Arch, Dev]       # Refinement, decomposition
+  "Backlog→Implementing":      [Dev, QA]             # Kickoff
+  "Implementing→Validating":   [Dev, QA]             # Code + tests
+  "Validating→Deploying":      [QA, DevSecOps]       # Acceptance + deploy prep
+  "Deploying→Releasing":       [DevSecOps, PM]       # Deploy + release coord
+  "Releasing→Done":            [PM, BO]              # Release verification
+  "Funnel→Reviewing":          [PM, BO]              # Portfolio triage
+  "Reviewing→Analyzing":       [PM, BO]              # Accepted for LBC
+  "Analyzing→Ready":           [PM, Arch, BO]       # LBC approval
+  "Ready→Implementing":        [PM, Arch]            # Capacity/team allocation
+  "Implementing→Done":         [PM, BO, Arch]        # MVP acceptance
+
+# ─────────────────────────────────────────────────────────────────────
+# RULES
+# ─────────────────────────────────────────────────────────────────────
+rules:
+  - "Highest signal determines evidence_role (signals don't add up)"
+  - "role_overrides are applied based on person's role from people.yaml"
+  - "Manual override (/contribute) takes precedence over auto-detection"
+  - "Commit count does NOT translate to time — it only signals relevance"
+  - "mode=gates (default): each status transition on Feature/Epic/Initiative is credited per gate_weight; Story stays Done-only"
+  - "mode=simple|full: only Done items are credited (use when git history doesn't record status transitions)"
+  - "ALL commits are delivery evidence — including governance (.edpa/, config/)"
+
+# ─────────────────────────────────────────────────────────────────────
+# PRINCIPLE: WORK = WORK, REGARDLESS OF FILE TYPE
+# ─────────────────────────────────────────────────────────────────────
+# EDPA does not measure "code development" — it measures contribution to delivery.
+#
+# A PM who updates the backlog, plans iterations, and defines AC
+# is WORKING on the project just like a Dev who writes code.
+#
+# Analytical and preparatory work (planning, specification, prioritization)
+# is the majority of work — not development itself.
+#
+# Therefore:
+#   Commit to .edpa/backlog.yaml  = project work ✓
+#   Commit to src/parser.py       = project work ✓
+#   Commit to config/people.yaml  = project work ✓
+#
+# The CW matrix per role ensures correct proportions:
+#   PM commit on backlog  → CW per role_overrides (PM consulted=0.20)
+#   Dev commit on src/    → CW per role_overrides (Dev owner=1.00)
+#
+# This puts BO, PM, and Arch on the same level as Dev —
+# their contribution is measured by the same principle, just with different weights.
+
+# ─────────────────────────────────────────────────────────────────────
+# CALIBRATION — METADATA
+# ─────────────────────────────────────────────────────────────────────
+calibration:
+  method: "Monte Carlo + multi-scenario + 2-PI simulation"
+  monte_carlo:
+    scenarios: 1000
+    records: 66362
+    team_sizes: "4-15 members"
+    mad_reduction: "7.7%"
+    confidence: "HIGH (p<0.001 for all biases)"
+  multi_scenario:
+    scenarios: 8
+    types:
+      - "Startup (5 people)"
+      - "Enterprise (12)"
+      - "DevOps-heavy (7)"
+      - "Research R&D (6)"
+      - "Consultancy (8)"
+      - "AI-Native (5)"
+      - "Regulated (9)"
+      - "kashealth (7)"
+    records: 569
+  simulation:
+    pis: 2
+    iterations: 10
+    commits: 510
+    ground_truth_records: 172
+    mad_trend: "0.0412 → 0.0333 (↓19.2%)"
+  calibrated_at: "2026-03-22"
+  key_findings:
+    - "BO: bias +0.16 (75% corrections) — decision-making invisible in Git"
+    - "PM: bias +0.11 (60% corrections) — specification invisible in Git"
+    - "Arch: bias +0.10 (53% corrections) — review/mentoring invisible"
+    - "Dev: bias 0.00 — Git accurately measures developer work"
+    - "QA: bias 0.00 — medians match auto-detection"
+    - "DevSecOps: bias 0.00 — infra work visible in Git"

@@ -1,0 +1,7 @@
+cadence: { iteration_weeks: 1, pi_weeks: 5, delivery_iterations_per_pi: 4, ip_iterations_per_pi: 1 }
+teams: [{ id: TECHNOMATON, planning_factor: 0.8 }]
+people:
+  - { id: alice-arch, name: "Alice Arch", role: Arch, team: TECHNOMATON, fte: 0.5, capacity_per_iteration: 20, email: a@e.t, github: jurby, availability: confirmed }
+  - { id: bob-dev,   name: "Bob Dev",     role: Dev,  team: TECHNOMATON, fte: 1.0, capacity_per_iteration: 40, email: b@e.t, github: jurby, availability: confirmed }
+  - { id: carol-qa,  name: "Carol QA",    role: QA,   team: TECHNOMATON, fte: 0.75,capacity_per_iteration: 30, email: c@e.t, github: jurby, availability: confirmed }
+  - { id: dave-pm,   name: "Dave PM",     role: PM,   team: TECHNOMATON, fte: 0.25,capacity_per_iteration: 10, email: d@e.t, github: jurby, availability: confirmed }

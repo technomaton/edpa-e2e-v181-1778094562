@@ -1,0 +1,77 @@
+# EDPA Work Item Validation
+# On backlog push: check that items have required fields
+name: EDPA Validate Work Items
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.edpa/backlog/**'
+  pull_request:
+    paths:
+      - '.edpa/backlog/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install pyyaml
+
+      - name: Validate backlog items
+        run: |
+          python3 -c "
+          import yaml, sys
+          from pathlib import Path
+
+          errors = []
+          warnings = []
+
+          for d in ['stories', 'features']:
+              for f in sorted((Path('.edpa/backlog') / d).glob('*.yaml')):
+                  data = yaml.safe_load(f.read_text()) or {}
+                  item_id = data.get('id', f.stem)
+
+                  # Required fields
+                  if not data.get('type'):
+                      errors.append(f'{item_id}: missing type')
+                  if not data.get('parent'):
+                      errors.append(f'{item_id}: missing parent')
+
+                  # Stories require JS
+                  if d == 'stories':
+                      js = data.get('js', 0)
+                      if not js:
+                          errors.append(f'{item_id}: missing Job Size (js)')
+                      elif js > 8:
+                          warnings.append(f'{item_id}: Job Size {js} > 8 — consider splitting')
+
+                  # Features require JS
+                  if d == 'features':
+                      js = data.get('js', 0)
+                      if not js:
+                          warnings.append(f'{item_id}: missing Job Size (js)')
+                      elif js > 13:
+                          warnings.append(f'{item_id}: Job Size {js} > 13 — consider splitting')
+
+                  # WSJF fields
+                  if d == 'features' and not all(data.get(k) for k in ['bv', 'tc', 'rr']):
+                      warnings.append(f'{item_id}: missing BV/TC/RR for WSJF calculation')
+
+          if warnings:
+              print('⚠ Warnings:')
+              for w in warnings:
+                  print(f'  {w}')
+          if errors:
+              print('✗ Errors:')
+              for e in errors:
+                  print(f'  {e}')
+              sys.exit(1)
+          else:
+              print(f'✓ All items valid')
+          "

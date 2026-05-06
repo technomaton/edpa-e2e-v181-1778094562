@@ -1,0 +1,31 @@
+#!/bin/sh
+# EDPA pre-commit hook — validates staged YAML and Python files before commit.
+# Exit 1 to block commit on syntax errors.
+
+# Get the repo root
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+# Find the validate_syntax.py script
+VALIDATOR="$REPO_ROOT/.claude/edpa/scripts/validate_syntax.py"
+
+if [ ! -f "$VALIDATOR" ]; then
+    # Validator not found — skip silently (don't block commits)
+    exit 0
+fi
+
+# Collect staged YAML and Python files
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(yaml|yml|py)$' || true)
+
+if [ -z "$STAGED_FILES" ]; then
+    exit 0
+fi
+
+# Build file list with full paths
+FILE_LIST=""
+for f in $STAGED_FILES; do
+    FILE_LIST="$FILE_LIST $REPO_ROOT/$f"
+done
+
+# Run validator
+python3 "$VALIDATOR" $FILE_LIST
+exit $?

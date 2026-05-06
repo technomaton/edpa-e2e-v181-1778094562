@@ -1,0 +1,62 @@
+# EDPA WSJF Calculator
+# On backlog push: recalculate WSJF scores for changed items
+name: EDPA WSJF Calculator
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.edpa/backlog/**'
+
+permissions:
+  contents: write
+
+jobs:
+  calculate-wsjf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install pyyaml
+
+      - name: Calculate WSJF scores
+        run: |
+          python3 -c "
+          import yaml
+          from pathlib import Path
+
+          changed = False
+          for d in ['features', 'stories', 'epics']:
+              for f in (Path('.edpa/backlog') / d).glob('*.yaml'):
+                  data = yaml.safe_load(f.read_text()) or {}
+                  bv = data.get('bv', 0)
+                  tc = data.get('tc', 0)
+                  rr = data.get('rr', 0)
+                  js = data.get('js', 0)
+                  if js > 0 and (bv or tc or rr):
+                      wsjf = round((bv + tc + rr) / js, 2)
+                      if data.get('wsjf') != wsjf:
+                          data['wsjf'] = wsjf
+                          f.write_text(yaml.dump(data, default_flow_style=False, allow_unicode=True))
+                          print(f'{data.get(\"id\", f.stem)}: WSJF = ({bv}+{tc}+{rr})/{js} = {wsjf}')
+                          changed = True
+
+          if not changed:
+              print('All WSJF scores up to date')
+          "
+
+      - name: Commit updated WSJF
+        run: |
+          git config user.name "edpa-bot"
+          git config user.email "edpa-bot@users.noreply.github.com"
+          git add .edpa/backlog/
+          if git diff --cached --quiet; then
+            echo "No WSJF changes"
+          else
+            git commit -m "chore(edpa): recalculate WSJF scores"
+            git push
+          fi

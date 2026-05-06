@@ -1,0 +1,31 @@
+{
+  "name": "edpa",
+  "version": "1.8.1-beta",
+  "description": "EDPA — Evidence-Driven Proportional Allocation. Derive hours from Git delivery evidence. Zero timesheets, mathematical guarantee, Monte Carlo calibrated CW weights. Gates mode (default) credits each status transition; bidirectional sync with GitHub Projects.",
+  "author": {
+    "name": "TECHNOMATON",
+    "url": "https://technomaton.com"
+  },
+  "repository": "https://github.com/technomaton/edpa",
+  "homepage": "https://edpa.technomaton.com",
+  "license": "MIT",
+  "tier": "community",
+  "mcpServers": "./.mcp.json",
+  "skills": [
+    "./skills/edpa-setup/SKILL.md",
+    "./skills/edpa-engine/SKILL.md",
+    "./skills/edpa-reports/SKILL.md",
+    "./skills/edpa-autocalib/SKILL.md",
+    "./skills/edpa-sync/SKILL.md",
+    "./skills/edpa-sync-people/SKILL.md"
+  ],
+  "commands": [
+    "./commands/edpa/setup.md",
+    "./commands/edpa/close-iteration.md",
+    "./commands/edpa/reports.md",
+    "./commands/edpa/calibrate.md",
+    "./commands/edpa/sync.md"
+  ],
+  "agents": [],
+  "hooks": "./hooks/hooks.json"
+}

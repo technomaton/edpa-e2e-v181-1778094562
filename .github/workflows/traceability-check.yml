@@ -1,0 +1,27 @@
+# EDPA Traceability Check
+# On backlog push/PR: verify parent chain Story -> Feature -> Epic -> Initiative
+name: EDPA Traceability Check
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.edpa/backlog/**'
+  pull_request:
+    paths:
+      - '.edpa/backlog/**'
+
+jobs:
+  traceability:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install pyyaml
+
+      - name: Check backlog traceability
+        run: python3 .claude/edpa/scripts/traceability.py

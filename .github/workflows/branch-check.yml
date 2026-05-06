@@ -1,0 +1,37 @@
+name: Branch Naming Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check-branch-name:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branch naming convention
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          echo "Branch: $BRANCH"
+
+          # Allow main, develop, release branches
+          if [[ "$BRANCH" =~ ^(main|develop|release/.*)$ ]]; then
+            echo "Protected branch — skipping check"
+            exit 0
+          fi
+
+          # Require item reference: S-XXX, F-XXX, E-XXX, I-XXX, T-XXX, D-XXX
+          if [[ "$BRANCH" =~ (feature|defect|hotfix|chore)/[SFEITD]-[0-9]+ ]]; then
+            echo "Branch name follows EDPA convention: $BRANCH"
+            exit 0
+          fi
+
+          echo "Branch name does not follow EDPA convention."
+          echo ""
+          echo "Required format: {type}/{item-id}-{description}"
+          echo "Examples:"
+          echo "  feature/S-200-omop-parser"
+          echo "  feature/F-102-anon-engine"
+          echo "  defect/D-215-upload-validation"
+          echo ""
+          echo "Item prefixes: S (Story), F (Feature), E (Epic), T (Task), D (Defect)"
+          exit 1

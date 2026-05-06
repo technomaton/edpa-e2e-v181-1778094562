@@ -1,0 +1,48 @@
+# EDPA Contributor Auto-Detection
+# On PR merge: scan commits/reviews, update backlog YAML contributors
+name: EDPA Contributor Detection
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  detect-contributors:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install pyyaml
+
+      - name: Detect contributors from PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: python3 .claude/edpa/scripts/detect_contributors.py
+
+      - name: Commit updated backlog
+        run: |
+          git config user.name "edpa-bot"
+          git config user.email "edpa-bot@users.noreply.github.com"
+          git add .edpa/backlog/
+          if git diff --cached --quiet; then
+            echo "No contributor changes detected"
+          else
+            git commit -m "chore(edpa): auto-detect contributors from PR #${PR_NUMBER}"
+            git push
+          fi

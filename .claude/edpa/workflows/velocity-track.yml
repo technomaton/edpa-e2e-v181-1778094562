@@ -1,0 +1,40 @@
+# EDPA Velocity Tracker
+# On iteration update: recompute velocity trend across all closed iterations
+name: EDPA Velocity Tracker
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.edpa/iterations/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  track-velocity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install pyyaml
+
+      - name: Compute velocity report
+        run: python3 .claude/edpa/scripts/velocity.py
+
+      - name: Commit velocity report
+        run: |
+          git config user.name "edpa-bot"
+          git config user.email "edpa-bot@users.noreply.github.com"
+          git add .edpa/reports/velocity/
+          if git diff --cached --quiet; then
+            echo "No velocity changes"
+          else
+            git commit -m "chore(edpa): update velocity report"
+            git push
+          fi

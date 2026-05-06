@@ -1,0 +1,44 @@
+# EDPA Project Configuration
+# Edit this file to match your project
+
+project:
+  name: "My Project"                          # ← Change this
+  registration: ""                            # Grant registration number (if applicable)
+  program: ""                                 # Funding program (e.g., OP TAK)
+  organizations:
+    - name: ""                                # Primary organization
+    - name: ""                                # Partner organization
+  domain: ""                                  # Domain URL (e.g., myproject.cz)
+
+governance:
+  methodology: "EDPA 1.8.1-beta"
+  calculation_mode: "gates"                   # gates (default) | simple (JS×CW) | full (JS×CW×RS)
+                                              # gates credits each status transition; use simple
+                                              # if your project does not record mid-life transitions
+  audit_mode: "full"                          # always store RS in snapshots
+
+naming:
+  pi_pattern: "PI-{year}-{pi_num}"            # e.g., PI-2026-1
+  iteration_pattern: "PI-{year}-{pi_num}.{iter_num}"  # e.g., PI-2026-1.3
+  branch_pattern: "{type}/{item_id}-{description}"    # e.g., feature/S-200-omop-parser
+  item_prefixes:
+    initiative: "I"
+    epic: "E"
+    feature: "F"
+    story: "S"
+    task: "T"
+    defect: "D"
+
+# Native GitHub Issue Types (org-level, not labels)
+issue_types:
+  Initiative: "Business case, investment proposal"
+  Epic: "Strategic goal, 6-9 months"
+  Feature: "Must fit within a Planning Interval"
+  Story: "Delivered in an iteration"
+  Defect: "Defect in existing functionality"
+  Task: "Technical work"
+
+# Enabler is a label classification (Business vs Enabler), not an Issue Type
+# An Epic can be labeled "Enabler" to mark it as Enabler Epic (SAFe)
+labels:
+  Enabler: "Infrastructure, research, technical debt"

@@ -1,0 +1,70 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EDPA Commit Info",
+  "description": "Schema for EDPA commit info output",
+  "type": "object",
+  "required": ["schema", "branch", "diff"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "edpa-commit-info/1.0",
+      "description": "Schema version identifier"
+    },
+    "branch": {
+      "type": ["string", "null"],
+      "description": "Current git branch name"
+    },
+    "diff": {
+      "type": "string",
+      "description": "Staged diff summary"
+    },
+    "person": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "required": ["id", "role"],
+          "properties": {
+            "id": {"type": "string"},
+            "name": {"type": "string"},
+            "role": {
+              "type": "string",
+              "enum": ["Arch", "Dev", "DevSecOps", "PM", "BO", "QA"]
+            },
+            "team": {"type": "string"},
+            "fte": {"type": "number", "minimum": 0},
+            "capacity": {"type": "number", "minimum": 0},
+            "email": {"type": "string", "format": "email"}
+          }
+        }
+      ],
+      "description": "Resolved person from people.yaml"
+    },
+    "evidence": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "properties": {
+            "version": {"type": "string"},
+            "evidence_threshold": {"type": "number", "minimum": 0},
+            "role_weights": {
+              "type": "object",
+              "properties": {
+                "owner": {"type": "number", "minimum": 0, "maximum": 1},
+                "key": {"type": "number", "minimum": 0, "maximum": 1},
+                "reviewer": {"type": "number", "minimum": 0, "maximum": 1},
+                "consulted": {"type": "number", "minimum": 0, "maximum": 1}
+              }
+            }
+          }
+        }
+      ],
+      "description": "CW heuristics configuration"
+    },
+    "item": {
+      "type": ["string", "null"],
+      "description": "Matched backlog item ID"
+    }
+  }
+}

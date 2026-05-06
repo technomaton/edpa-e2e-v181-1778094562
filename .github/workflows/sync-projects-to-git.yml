@@ -1,0 +1,33 @@
+name: Sync GitHub Projects -> Git
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  projects: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install pyyaml
+
+      - name: Sync Projects to Git
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 .claude/edpa/scripts/sync.py pull --commit
+
+      - name: Push changes
+        run: |
+          git config user.name "EDPA Sync Bot"
+          git config user.email "edpa-sync@github-actions"
+          git diff --quiet || (git add .edpa/ && git commit -m "sync: GitHub Projects -> .edpa/backlog/" && git push)

@@ -1,0 +1,8 @@
+project: { name: "EDPA E2E v1.8.1-beta" }
+governance: { methodology: "EDPA 1.8.1-beta", calculation_mode: gates, audit_mode: full }
+naming:
+  pi_pattern: "PI-{year}-{pi_num}"
+  iteration_pattern: "PI-{year}-{pi_num}.{iter_num}"
+  branch_pattern: "{type}/{item_id}-{description}"
+  item_prefixes: { initiative: I, epic: E, feature: F, story: S, task: T, defect: D }
+sync: { github_org: technomaton, github_repo: edpa-e2e-v181-1778094562 }

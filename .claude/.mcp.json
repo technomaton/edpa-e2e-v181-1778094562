@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    },
+    "edpa": {
+      "command": "python3",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/edpa/scripts/mcp_server.py"]
+    }
+  }
+}

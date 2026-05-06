@@ -1,0 +1,72 @@
+name: EDPA Iteration Close
+
+on:
+  workflow_dispatch:
+    inputs:
+      iteration_id:
+        description: 'Iteration ID (e.g., PI-2026-1.3)'
+        required: true
+        type: string
+      mode:
+        description: 'Calculation mode (simple/full=Done items only, gates=credit per status transition)'
+        required: false
+        default: 'simple'
+        type: choice
+        options:
+          - simple
+          - full
+          - gates
+
+jobs:
+  close-iteration:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: read
+      pull-requests: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install pyyaml openpyxl
+
+      - name: Verify configuration
+        run: |
+          test -f .edpa/config/people.yaml || (echo "ERROR: Run /edpa setup first." && exit 1)
+          test -f .edpa/config/heuristics.yaml || (echo "ERROR: Run /edpa setup first." && exit 1)
+
+      - name: Run EDPA Engine
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 .claude/edpa/scripts/engine.py \
+            --iteration "${{ inputs.iteration_id }}" \
+            --mode "${{ inputs.mode }}" \
+            --capacity .edpa/config/people.yaml \
+            --heuristics .edpa/config/heuristics.yaml
+
+      - name: Verify invariants
+        run: |
+          RESULTS=".edpa/reports/iteration-${{ inputs.iteration_id }}/edpa_results.json"
+          test -f "$RESULTS" || (echo "ERROR: No results." && exit 1)
+          python3 -c "
+          import json, sys
+          with open('$RESULTS') as f:
+              data = json.load(f)
+          if not data.get('all_invariants_passed'):
+              sys.exit(1)
+          "
+
+      - name: Commit results
+        run: |
+          git config user.name "EDPA Bot"
+          git config user.email "edpa@github-actions"
+          git add .edpa/reports/ .edpa/snapshots/
+          git commit -m "feat(edpa): close iteration ${{ inputs.iteration_id }}" || true
+          git push

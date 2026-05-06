@@ -1,0 +1,126 @@
+# EDPA Capacity Registry
+# Edit this file with your team details
+# Updated at each Iteration Planning
+
+cadence:
+  # Default is AI-native: 5-week PI = 4× 1-week delivery iteration + 1× 1-week IP.
+  # The IP iteration absorbs leftover work, debt, prioritization, and PI planning
+  # itself (compressible to a single day with AI-assisted ceremonies).
+  # Set iteration_weeks: 2 + pi_weeks: 10 + delivery_iterations_per_pi: 4 for
+  # classic SAFe cadence on slower-moving teams.
+  iteration_weeks: 1                          # 1 (AI-native, default) or 2 (classic SAFe)
+  pi_weeks: 5                                 # 5 (AI-native, default) or 10 (classic)
+  delivery_iterations_per_pi: 4               # PI minus IP iteration
+  ip_iterations_per_pi: 1                     # Innovation & Planning
+
+# Teams — planning_factor is a team-level decision, not a cadence property
+teams:
+  - id: "Org A"
+    planning_factor: 0.8                      # Plan to 80% of team capacity
+    # Buffer absorbs: support, maintenance, incidents, unplanned work
+    # EDPA calculation always uses 100% capacity — planning_factor is a planning heuristic only
+
+# Team members — add/remove as needed
+people:
+  # EXAMPLE — replace with your team:
+  - id: example-arch
+    name: "Architect Name"
+    role: Arch                                # Arch, Dev, DevSecOps, PM, QA
+    team: "Org A"                             # Organization name
+    fte: 0.5
+    capacity_per_iteration: 20                # hours: FTE × 40 for 1-week iter
+                                              # (use 40 for 2-week iter)
+    email: "arch@example.com"
+    github: "arch-handle"                     # OPTIONAL: GitHub login. When set,
+                                              # sync push uses `gh issue --assignee`
+                                              # so GH shows the right user. Without
+                                              # it, the assignee is recorded only in
+                                              # the issue body.
+    availability: confirmed                   # confirmed, partial, unavailable
+
+  - id: example-dev
+    name: "Developer Name"
+    role: Dev
+    team: "Org A"
+    fte: 1.0
+    capacity_per_iteration: 40                # FTE × 40 for 1-week iter
+    email: "dev@example.com"
+    github: "dev-handle"
+    availability: confirmed
+
+# ─────────────────────────────────────────────────────────────────────
+# MULTI-ROLE: One person, multiple contracts/roles
+# ─────────────────────────────────────────────────────────────────────
+# If a person has multiple contracts (e.g., full-time + part-time) with
+# different roles, create a separate entry for each contract:
+#
+#   - id: smith-arch              # Contract 1: Full-time, Architect
+#     name: "John Smith"
+#     role: Arch
+#     contract: "Full-time"
+#     fte: 1.0
+#     capacity_per_iteration: 40
+#     evidence_default: true      # Default for Git auto-detection
+#     evidence_scope: ["S-*", "F-*"]  # fnmatch patterns for item IDs (v2.0)
+#
+#   - id: smith-pm                # Contract 2: Part-time, PM
+#     name: "John Smith"
+#     role: PM
+#     contract: "Part-time"
+#     fte: 0.2
+#     capacity_per_iteration: 8
+#     evidence_default: false
+#     evidence_scope: ["E-*", "I-*"]  # PM sees Epics/Initiatives
+#
+# evidence_scope (v2.0):
+#   List of fnmatch patterns for item IDs.
+#   Only items matching these patterns generate evidence for this contract.
+#   evidence_default: true = fallback for items without matching scope.
+#
+# EDPA guarantee holds per entry:
+#   Σ DerivedHours[smith-arch] = 40h
+#   Σ DerivedHours[smith-pm] = 8h
+#
+# Evidence assignment:
+#   Explicit in backlog: contributors.person = "smith-arch"
+#   Or: /contribute @smith-pm weight:0.4 in issue comment
+#   Default: evidence_default=true entry receives unspecified commits
+
+# Calculated at runtime by EDPA engine:
+# total_fte: sum of people[].fte
+# total_capacity_per_iteration: sum of people[].capacity_per_iteration
+# total_capacity_per_pi: total_capacity_per_iteration × delivery_iterations_per_pi
+
+# ─────────────────────────────────────────────────────────────────────
+# Backlog item evidence schema (referenced from .edpa/backlog/**/*.yaml)
+# ─────────────────────────────────────────────────────────────────────
+# `people[].role` here = HUMAN job role (Dev, Arch, QA, PM, DevSecOps).
+# `contributors[].as` in backlog YAMLs = EVIDENCE role: one of
+#     owner | key | reviewer | consulted
+# Two different fields with two different vocabularies, on purpose —
+# they used to share the `role:` key in <1.7 and that was confusing.
+# The engine knows only those four evidence values; anything else
+# is unmapped and produces zero evidence (with a clear WARN at engine
+# startup so it never fails silently).
+#
+# Example of a properly evidence-shaped story:
+#
+#   id: S-200
+#   type: Story
+#   parent: F-100
+#   js: 5
+#   status: Done
+#   iteration: PI-2026-1.3
+#   contributors:
+#     - person: bob-dev          # must match people[].id above
+#       as: owner                # owner | key | reviewer | consulted
+#       cw: 0.8                  # 0..1 manual contribution weight
+#     - person: carol-qa
+#       as: reviewer
+#       cw: 0.2
+#
+# Upgrading from a pre-1.7 backlog?
+#   python3 .claude/edpa/scripts/migrate_contributors.py
+# rewrites every .edpa/backlog/**/*.yaml to the new keys in one pass.
+# `validate_syntax.py --strict .edpa/backlog/` will block commits that
+# don't match this schema; the default mode warns but allows commit.
